@@ -13,11 +13,13 @@ void hw_timer0_setup(eTimer0_prsc_t prsc)
 //    OPTION_REGbits.PS = 0;
 
     /* clear prescaler bits */
-   // OPTION_REG &= (~prsc);
+    //OPTION_REG &= (~prsc);
+    OPTION_REG &= (~0x03);
     /* set prescaler bits*/
-   // OPTION_REG |= (prsc);
+    //OPTION_REG |= (prsc);
+    OPTION_REG |= (0x03);
 
-    OPTION_REG = 0x03; // this set prescaler to 16
+    //OPTION_REG = 0x03; // this set prescaler to 16
 
 }
 
