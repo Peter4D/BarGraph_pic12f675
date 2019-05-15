@@ -1,7 +1,7 @@
 Disassembly Listing for pic12f675_eval
 Generated From:
 C:/Users/Peter/Documents/pic12f675_eval.X/dist/default/production/pic12f675_eval.X.production.cof
-4.5.2019 21:46:28
+15.5.2019 23:29:08
 
 ---  C:/Users/Peter/Documents/pic12f675_eval.X/main.c  --------------------------------------------------
 1:             /* 
@@ -14,210 +14,111 @@ C:/Users/Peter/Documents/pic12f675_eval.X/dist/default/production/pic12f675_eval
 8:             #include <stdio.h>
 9:             #include <stdlib.h>
 10:            #include <stdint.h>
-11:            #include <pic12f675.h>
+11:            //#include <pic12f675.h>
 12:            
 13:            #include <htc.h>
 14:            
-15:            #include "hw_timer0.h"
-16:            #include "interrupt.h"
-17:            
-18:            #define TIMER0_1S_CONST     (242u)
-19:            #define GPIO_PIN4_msk       (1 << 4)
-20:            
-21:            #define GPIO_PIN_0_Val      (0u)
-22:            #define GPIO_PIN_1_Val      (1u)
-23:            #define GPIO_PIN_2_Val      (2u)
-24:            #define GPIO_PIN_3_Val      (3u)
-25:            #define GPIO_PIN_4_Val      (4u)
-26:            #define GPIO_PIN_5_Val      (5u)
-27:            
-28:            typedef enum{
-29:                GPIO_PIN_0_Msk  = (1 << GPIO_PIN_0_Val),
-30:                GPIO_PIN_1_Msk  = (1 << GPIO_PIN_1_Val),
-31:                GPIO_PIN_2_Msk  = (1 << GPIO_PIN_2_Val),
-32:                GPIO_PIN_3_Msk  = (1 << GPIO_PIN_3_Val),
-33:                GPIO_PIN_4_Msk  = (1 << GPIO_PIN_4_Val),
-34:                GPIO_PIN_5_Msk  = (1 << GPIO_PIN_5_Val)
-35:            }GPIO_pin_msk_t;
-36:            
-37:            typedef enum {
-38:                GPIO_LOW,
-39:                GPIO_HIGH,
-40:                GPIO_TOGGLE        
-41:            }eGPIO_write_t;
-42:            
-43:            __CONFIG(FOSC_INTRCIO & WDTE_OFF & PWRTE_OFF & MCLRE_ON & BOREN_ON & CP_OFF & CPD_OFF);
+15:            #include "GPIO_driver.h"
+16:            
+17:            #include "hw_timer0.h"
+18:            #include "interrupt.h"
+19:            
+20:            #define TIMER0_1S_CONST         (242u)
+21:            #define TIMER0_0_5S_CONST       (121u)
+22:            
+23:            
+24:            __CONFIG(FOSC_INTRCIO & WDTE_OFF & PWRTE_OFF & MCLRE_ON & BOREN_ON & CP_OFF & CPD_OFF);
+25:            
+26:            
+27:            void delay_blk(uint16_t delay_cnt);
+28:            
+29:            /*
+30:             * GLOBAL VARIABLES:
+31:             */
+32:            //static uint8_t timer0_cnt = TIMER0_1S_CONST;
+33:            
+34:            void tmr0_sw_intHandler(void)
+35:            {
+36:                static uint8_t timer0_cnt = 0;
+37:                timer0_cnt--;
+0052  3001     MOVLW 0x1
+0053  1283     BCF STATUS, 0x5
+0054  02AF     SUBWF timer0_cnt, F
+38:                if(timer0_cnt == 0) {
+0055  08AF     MOVF timer0_cnt, F
+0056  1D03     BTFSS STATUS, 0x2
+0057  2859     GOTO 0x59
+0058  285A     GOTO 0x5A
+0059  2865     GOTO 0x65
+39:                    //timer0_cnt = TIMER0_1S_CONST;
+40:                    timer0_cnt = TIMER0_0_5S_CONST;
+005A  3079     MOVLW 0x79
+005B  00A3     MOVWF 0x23
+005C  0823     MOVF 0x23, W
+005D  00AF     MOVWF timer0_cnt
+41:                    gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE); 
+005E  3002     MOVLW 0x2
+005F  00A3     MOVWF 0x23
+0060  0823     MOVF 0x23, W
+0061  00A0     MOVWF GPIO_write
+0062  3010     MOVLW 0x10
+0063  2014     CALL 0x14
+0064  2865     GOTO 0x65
+42:                }
+43:            }
+0065  0008     RETURN
 44:            
 45:            
-46:            
-47:            void gpio_init(GPIO_pin_msk_t pin_msk);
-48:            void gpio_write(GPIO_pin_msk_t pin_msk, eGPIO_write_t GPIO_write);
-49:            
-50:            void delay_blk(uint16_t delay_cnt);
-51:            
-52:            /*
-53:             * GLOBAL VARIABLES:
-54:             */
-55:            static uint8_t timer0_cnt = TIMER0_1S_CONST;
-56:            
-57:            void gpio_init(GPIO_pin_msk_t pin_msk){
-0074  1283     BCF STATUS, 0x5
-0075  00A5     MOVWF 0x25
-58:                TRISIO &= (~pin_msk);
-0076  0925     COMF 0x25, W
-0077  00A4     MOVWF GPIO_write
-0078  0824     MOVF GPIO_write, W
-0079  1683     BSF STATUS, 0x5
-007A  0585     ANDWF GPIO, F
-59:                GPIO &= (~pin_msk);
-007B  1283     BCF STATUS, 0x5
-007C  0925     COMF 0x25, W
-007D  00A4     MOVWF GPIO_write
-007E  0824     MOVF GPIO_write, W
-007F  0585     ANDWF GPIO, F
-60:            }
-0080  0008     RETURN
-61:            
-62:            void gpio_write(GPIO_pin_msk_t pin_msk, eGPIO_write_t GPIO_write)
-63:            {
-64:                static uint8_t GPIO_state = 0x00;
-65:                
-66:                if(GPIO_write == GPIO_HIGH){
-0014  1283     BCF STATUS, 0x5
-0015  00A6     MOVWF 0x26
-0016  0824     MOVF GPIO_write, W
-0017  3A01     XORLW 0x1
-0018  1D03     BTFSS STATUS, 0x2
-0019  281B     GOTO 0x1B
-001A  281C     GOTO 0x1C
-001B  2821     GOTO 0x21
-67:                    GPIO_state |= (pin_msk);
-001C  0826     MOVF 0x26, W
-001D  00A5     MOVWF 0x25
-001E  0825     MOVF 0x25, W
-001F  04AD     IORWF GPIO_state, F
-68:                }else if(GPIO_write == GPIO_LOW){
-0020  2838     GOTO 0x38
-0021  08A4     MOVF GPIO_write, F
-0022  1D03     BTFSS STATUS, 0x2
-0023  2825     GOTO 0x25
-0024  2826     GOTO 0x26
-0025  282B     GOTO 0x2B
-69:                    GPIO_state &= (~pin_msk);
-0026  0926     COMF 0x26, W
-0027  00A5     MOVWF 0x25
-0028  0825     MOVF 0x25, W
-0029  05AD     ANDWF GPIO_state, F
-70:                }else if(GPIO_write == GPIO_TOGGLE){
-002A  2838     GOTO 0x38
-002B  0824     MOVF GPIO_write, W
-002C  3A02     XORLW 0x2
-002D  1D03     BTFSS STATUS, 0x2
-002E  2830     GOTO 0x30
-002F  2831     GOTO 0x31
-0030  2838     GOTO 0x38
-71:                    GPIO_state ^= (pin_msk);
-0031  0826     MOVF 0x26, W
-0032  00A5     MOVWF 0x25
-0033  0825     MOVF 0x25, W
-0034  06AD     XORWF GPIO_state, F
-0035  2838     GOTO 0x38
-72:                }
-0036  2838     GOTO 0x38
-73:                GPIO = GPIO_state;
-0037  2838     GOTO 0x38
-0038  082D     MOVF GPIO_state, W
-0039  0085     MOVWF GPIO
-74:            }
-003A  0008     RETURN
-75:            
-76:            void tmr0_sw_intHandler(void)
-77:            {
-78:                // timer0_cnt--;
-79:                // if(timer0_cnt == 0) {
-80:                //     timer0_cnt = TIMER0_1S_CONST;
-81:                //     gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE); 
-82:                // }
-83:            }
-00A5  0008     RETURN
-84:            
-85:            
-86:            void delay_blk(uint16_t delay_cnt)
-87:            {
-88:                while(delay_cnt){
-89:                    delay_cnt--;
-90:                }
-91:            }
-92:            
-93:            /*
-94:             * 
-95:             */
-96:            int main(int argc, char** argv) {
-97:                
-98:                static uint8_t gpio_state = (1<<4);
-00A4  3410     RETLW 0x10
-99:                
-100:               gpio_init(GPIO_PIN_4_Msk);
-003B  3010     MOVLW 0x10
-003C  2074     CALL 0x74
-101:           //    intr_tmr0_en();
-102:               hw_timer0_setup(TIMER0_PRSC_16);
-003D  3003     MOVLW 0x3
-003E  208E     CALL 0x8E
-003F  2840     GOTO 0x40
-103:               
-104:               while(1)
-005B  2840     GOTO 0x40
-105:               { 
-106:                  //gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE);
-107:                  //delay_blk(20000);
-108:                  
-109:                   //GPIObits.GP4 = 0;
-110:                   //delay_blk(20000);
-111:                   //GPIObits.GP4 = 1;
-112:                   //delay_blk(10000); 
-113:                   //GPIObits.GP4 = !GPIObits.GP4; 
-114:                   
-115:                   if(hw_timer0_get_OF_bit()) {
-0040  2081     CALL 0x81
-0041  3A00     XORLW 0x0
-0042  1903     BTFSC STATUS, 0x2
-0043  2845     GOTO 0x45
-0044  2846     GOTO 0x46
-0045  2840     GOTO 0x40
-116:                       timer0_cnt--;
-0046  3001     MOVLW 0x1
-0047  1283     BCF STATUS, 0x5
-0048  02AE     SUBWF timer0_cnt, F
-117:                       if(timer0_cnt == 0) {
-0049  08AE     MOVF timer0_cnt, F
-004A  1D03     BTFSS STATUS, 0x2
-004B  284D     GOTO 0x4D
-004C  284E     GOTO 0x4E
-004D  2840     GOTO 0x40
-118:                           timer0_cnt = TIMER0_1S_CONST;
-004E  30F2     MOVLW 0xF2
-004F  00AB     MOVWF 0x2B
-0050  082B     MOVF 0x2B, W
-0051  00AE     MOVWF timer0_cnt
-119:                           gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE); 
-0052  3002     MOVLW 0x2
-0053  00AB     MOVWF 0x2B
-0054  082B     MOVF 0x2B, W
-0055  00A4     MOVWF GPIO_write
-0056  3010     MOVLW 0x10
-0057  2014     CALL 0x14
-0058  2840     GOTO 0x40
-120:                       }
-0059  2840     GOTO 0x40
-121:                   }
-005A  2840     GOTO 0x40
-122:                   
-123:               }
-124:               return (EXIT_SUCCESS);
-125:           }
-005C  280F     GOTO 0xF
-126:           
+46:            void delay_blk(uint16_t delay_cnt)
+47:            {
+48:                while(delay_cnt){
+49:                    delay_cnt--;
+50:                }
+51:            }
+52:            
+53:            /*
+54:             * 
+55:             */
+56:            int main(int argc, char** argv) {
+57:                
+58:                static uint8_t gpio_state = (1<<4);
+009D  3410     RETLW 0x10
+59:                
+60:                gpio_init(GPIO_PIN_4_Msk);
+008F  3010     MOVLW 0x10
+0090  2078     CALL 0x78
+61:                intr_tmr0_en();
+0091  2085     CALL 0x85
+62:                hw_timer0_setup(TIMER0_PRSC_8);
+0092  3002     MOVLW 0x2
+0093  2066     CALL 0x66
+0094  2895     GOTO 0x95
+63:                
+64:                while(1)
+0095  2895     GOTO 0x95
+65:                { 
+66:                   //gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE);
+67:                   //delay_blk(20000);
+68:                   
+69:                    //GPIObits.GP4 = 0;
+70:                    //delay_blk(20000);
+71:                    //GPIObits.GP4 = 1;
+72:                    //delay_blk(10000); 
+73:                    //GPIObits.GP4 = !GPIObits.GP4; 
+74:                    
+75:                    // if(hw_timer0_get_OF_bit()) {
+76:                    //     timer0_cnt--;
+77:                    //     if(timer0_cnt == 0) {
+78:                    //         timer0_cnt = TIMER0_1S_CONST;
+79:                    //         gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE); 
+80:                    //     }
+81:                    // }
+82:                    
+83:                }
+84:                return (EXIT_SUCCESS);
+85:            }
+0096  280F     GOTO 0xF
+86:            
 ---  C:/Users/Peter/Documents/pic12f675_eval.X/interrupt.c  ---------------------------------------------
 1:             #include "interrupt.h"
 2:             
@@ -231,8 +132,18 @@ C:/Users/Peter/Documents/pic12f675_eval.X/dist/default/production/pic12f675_eval
 10:            {
 11:                // firt clear bits that we will change
 12:                INTCON &= (~INTCON_TMR0_SETUP_Msk);
+0085  305F     MOVLW 0x5F
+0086  1283     BCF STATUS, 0x5
+0087  00A8     MOVWF 0x28
+0088  0828     MOVF 0x28, W
+0089  058B     ANDWF INTCON, F
 13:                INTCON |= (INTCON_TMR0_SETUP_Msk);
+008A  30A0     MOVLW 0xA0
+008B  00A8     MOVWF 0x28
+008C  0828     MOVF 0x28, W
+008D  048B     IORWF INTCON, F
 14:            }
+008E  0008     RETURN
 15:            
 16:            
 17:            void interrupt pic_isr(void)
@@ -240,96 +151,165 @@ C:/Users/Peter/Documents/pic12f675_eval.X/dist/default/production/pic12f675_eval
 0004  00DE     MOVWF 0x5E
 0005  0E03     SWAPF STATUS, W
 0006  1283     BCF STATUS, 0x5
-0007  00A0     MOVWF 0x20
+0007  00A4     MOVWF 0x24
 0008  0804     MOVF FSR, W
-0009  00A1     MOVWF 0x21
+0009  00A5     MOVWF 0x25
 000A  080A     MOVF PCLATH, W
-000B  00A2     MOVWF 0x22
+000B  00A6     MOVWF 0x26
 000C  085F     MOVF 0x5F, W
-000D  00A3     MOVWF 0x23
-000E  285D     GOTO 0x5D
+000D  00A7     MOVWF 0x27
+000E  283B     GOTO 0x3B
 000F  1683     BSF STATUS, 0x5
 0010  23FF     CALL 0x3FF
 0011  0090     MOVWF T1CON
 0012  0183     CLRF STATUS
-0013  289B     GOTO 0x9B
+0013  2897     GOTO 0x97
 19:                // only process timer-triggered interrupts
 20:                if(INTCONbits.TMR0IE && INTCONbits.TMR0IF) {
-005D  1E8B     BTFSS INTCON, 0x5
-005E  2860     GOTO 0x60
-005F  2861     GOTO 0x61
-0060  2868     GOTO 0x68
-0061  1D0B     BTFSS INTCON, 0x2
-0062  2864     GOTO 0x64
-0063  2865     GOTO 0x65
-0064  2868     GOTO 0x68
+003B  1E8B     BTFSS INTCON, 0x5
+003C  283E     GOTO 0x3E
+003D  283F     GOTO 0x3F
+003E  2846     GOTO 0x46
+003F  1D0B     BTFSS INTCON, 0x2
+0040  2842     GOTO 0x42
+0041  2843     GOTO 0x43
+0042  2846     GOTO 0x46
 21:                    //portValue++;
 22:                    tmr0_sw_intHandler();
-0065  20A5     CALL 0xA5
+0043  2052     CALL 0x52
 23:                    INTCONbits.TMR0IF = 0;  // clear this interrupt condition
-0066  110B     BCF INTCON, 0x2
-0067  2868     GOTO 0x68
+0044  110B     BCF INTCON, 0x2
+0045  2846     GOTO 0x46
 24:                }
 25:            }
-0068  1283     BCF STATUS, 0x5
+0046  1283     BCF STATUS, 0x5
 ---  C:/Users/Peter/Documents/pic12f675_eval.X/hw_timer0.c  ---------------------------------------------
 1:             #include "hw_timer0.h"
 2:             
 3:             
-4:             void hw_timer0_setup(eTimer0_prsc_t prsc)
-5:             {
+4:             #define OPTION_REG_PRSC_Msk         (0x07u)
+5:             
+6:             void hw_timer0_setup(eTimer0_prsc_t prsc)
+7:             {
+0066  1283     BCF STATUS, 0x5
+0067  00A9     MOVWF 0x29
+8:                 TMR0 = 0x00;
+0068  0181     CLRF TMR0
+9:                 OPTION_REG = 0;
+0069  1683     BSF STATUS, 0x5
+006A  0181     CLRF TMR0
+10:                //OPTION_REGbits.T0CS = 1;
+11:                /* clear prescaler bits */
+12:                OPTION_REG &= (~OPTION_REG_PRSC_Msk);
+006B  30F8     MOVLW 0xF8
+006C  1283     BCF STATUS, 0x5
+006D  00A8     MOVWF 0x28
+006E  0828     MOVF 0x28, W
+006F  1683     BSF STATUS, 0x5
+0070  0581     ANDWF TMR0, F
+13:                /* set prescaler bits*/
+14:                OPTION_REG |= (prsc);
+0071  1283     BCF STATUS, 0x5
+0072  0829     MOVF 0x29, W
+0073  00A8     MOVWF 0x28
+0074  0828     MOVF 0x28, W
+0075  1683     BSF STATUS, 0x5
+0076  0481     IORWF TMR0, F
+15:                //OPTION_REGbits.T0CS = 0;
+16:            
+17:                //OPTION_REG = 0x03; // this set prescaler to 16
+18:            
+19:            }
+0077  0008     RETURN
+20:            
+21:            uint8_t hw_timer0_get_OF_bit(void)
+22:            {
+23:                if(INTCONbits.T0IF){
+24:                    INTCONbits.T0IF = 0;
+25:                    return 1;
+26:                }else {
+27:                    return 0;
+28:                }
+29:            }
+---  C:/Users/Peter/Documents/pic12f675_eval.X/GPIO_driver.c  -------------------------------------------
+1:             
+2:             #include "htc.h"
+3:             #include "GPIO_driver.h"
+4:             
+5:             
 6:             
-7:                /* write to separate bits of register seems NOT to work !
-8:                 you need to write whole regester at once !!
-9:                 */ 
-10:            //    OPTION_REGbits.PS0 = 1;
-11:            //    OPTION_REGbits.PS1 = 1;
-12:            //    OPTION_REGbits.PS2 = 1;
-13:            //    OPTION_REGbits.PS = 0;
-14:            
-15:                /* clear prescaler bits */
-16:                //OPTION_REG &= (~prsc);
-17:                OPTION_REG &= (~0x03);
-008E  30FC     MOVLW 0xFC
-008F  1283     BCF STATUS, 0x5
-0090  00A4     MOVWF GPIO_write
-0091  0824     MOVF GPIO_write, W
-0092  1683     BSF STATUS, 0x5
-0093  0581     ANDWF TMR0, F
-18:                /* set prescaler bits*/
-19:                //OPTION_REG |= (prsc);
-20:                OPTION_REG |= (0x03);
-0094  3003     MOVLW 0x3
-0095  1283     BCF STATUS, 0x5
-0096  00A4     MOVWF GPIO_write
-0097  0824     MOVF GPIO_write, W
-0098  1683     BSF STATUS, 0x5
-0099  0481     IORWF TMR0, F
-21:            
-22:                //OPTION_REG = 0x03; // this set prescaler to 16
-23:            
-24:            }
-009A  0008     RETURN
-25:            
-26:            uint8_t hw_timer0_get_OF_bit(void)
-27:            {
-28:                if(INTCONbits.T0IF){
-0081  1D0B     BTFSS INTCON, 0x2
-0082  2884     GOTO 0x84
-0083  2885     GOTO 0x85
-0084  288A     GOTO 0x8A
-29:                    INTCONbits.T0IF = 0;
-0085  110B     BCF INTCON, 0x2
-30:                    return 1;
-0086  3001     MOVLW 0x1
-0087  288D     GOTO 0x8D
-0088  288D     GOTO 0x8D
-31:                }else {
-0089  288D     GOTO 0x8D
-32:                    return 0;
-008A  3000     MOVLW 0x0
-008B  288D     GOTO 0x8D
-008C  288D     GOTO 0x8D
-33:                }
-34:            }
-008D  0008     RETURN
+7:             
+8:             void gpio_init(GPIO_pin_msk_t pin_msk){
+9:             
+10:                TRISIO &= (~pin_msk);
+0078  1283     BCF STATUS, 0x5
+0079  00A9     MOVWF 0x29
+007A  0929     COMF 0x29, W
+007B  00A8     MOVWF 0x28
+007C  0828     MOVF 0x28, W
+007D  1683     BSF STATUS, 0x5
+007E  0585     ANDWF GPIO, F
+11:                GPIO &= (~pin_msk);
+007F  1283     BCF STATUS, 0x5
+0080  0929     COMF 0x29, W
+0081  00A8     MOVWF 0x28
+0082  0828     MOVF 0x28, W
+0083  0585     ANDWF GPIO, F
+12:            }
+0084  0008     RETURN
+13:            
+14:            void gpio_write(GPIO_pin_msk_t pin_msk, eGPIO_write_t GPIO_write)
+15:            {
+16:                static uint8_t GPIO_state = 0x00;
+17:                
+18:                if(GPIO_write == GPIO_HIGH){
+0014  1283     BCF STATUS, 0x5
+0015  00A2     MOVWF 0x22
+0016  0820     MOVF GPIO_write, W
+0017  3A01     XORLW 0x1
+0018  1D03     BTFSS STATUS, 0x2
+0019  281B     GOTO 0x1B
+001A  281C     GOTO 0x1C
+001B  2821     GOTO 0x21
+19:                    GPIO_state |= (pin_msk);
+001C  0822     MOVF 0x22, W
+001D  00A1     MOVWF 0x21
+001E  0821     MOVF 0x21, W
+001F  04AE     IORWF GPIO_state, F
+20:                    //GPIO |= (pin_msk); // this for some to me unknown reason not work 
+21:                }else if(GPIO_write == GPIO_LOW){
+0020  2838     GOTO 0x38
+0021  08A0     MOVF GPIO_write, F
+0022  1D03     BTFSS STATUS, 0x2
+0023  2825     GOTO 0x25
+0024  2826     GOTO 0x26
+0025  282B     GOTO 0x2B
+22:                    GPIO_state &= (~pin_msk);
+0026  0922     COMF 0x22, W
+0027  00A1     MOVWF 0x21
+0028  0821     MOVF 0x21, W
+0029  05AE     ANDWF GPIO_state, F
+23:                    //GPIO &= (~pin_msk);
+24:                }else if(GPIO_write == GPIO_TOGGLE){
+002A  2838     GOTO 0x38
+002B  0820     MOVF GPIO_write, W
+002C  3A02     XORLW 0x2
+002D  1D03     BTFSS STATUS, 0x2
+002E  2830     GOTO 0x30
+002F  2831     GOTO 0x31
+0030  2838     GOTO 0x38
+25:                    GPIO_state ^= (pin_msk);
+0031  0822     MOVF 0x22, W
+0032  00A1     MOVWF 0x21
+0033  0821     MOVF 0x21, W
+0034  06AE     XORWF GPIO_state, F
+0035  2838     GOTO 0x38
+26:                    //GPIO ^= (pin_msk);
+27:                }
+0036  2838     GOTO 0x38
+28:                GPIO = GPIO_state;
+0037  2838     GOTO 0x38
+0038  082E     MOVF GPIO_state, W
+0039  0085     MOVWF GPIO
+29:            }
+003A  0008     RETURN

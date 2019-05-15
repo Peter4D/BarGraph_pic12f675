@@ -1,23 +1,18 @@
 #include "hw_timer0.h"
 
 
+#define OPTION_REG_PRSC_Msk         (0x07u)
+
 void hw_timer0_setup(eTimer0_prsc_t prsc)
 {
-
-   /* write to separate bits of register seems NOT to work !
-    you need to write whole regester at once !!
-    */ 
-//    OPTION_REGbits.PS0 = 1;
-//    OPTION_REGbits.PS1 = 1;
-//    OPTION_REGbits.PS2 = 1;
-//    OPTION_REGbits.PS = 0;
-
+    TMR0 = 0x00;
+    OPTION_REG = 0;
+    //OPTION_REGbits.T0CS = 1;
     /* clear prescaler bits */
-    //OPTION_REG &= (~prsc);
-    OPTION_REG &= (~0x03);
+    OPTION_REG &= (~OPTION_REG_PRSC_Msk);
     /* set prescaler bits*/
-    //OPTION_REG |= (prsc);
-    OPTION_REG |= (0x03);
+    OPTION_REG |= (prsc);
+    //OPTION_REGbits.T0CS = 0;
 
     //OPTION_REG = 0x03; // this set prescaler to 16
 
