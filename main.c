@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     
     static uint8_t gpio_state = (1<<4);
     
-    gpio_init(GPIO_PIN_4_Msk);
+    gpio_init(GPIO_PIN_4_Msk, GPIO_OUTPUT);
     intr_tmr0_en();
     hw_timer0_setup(TIMER0_PRSC_8);
     

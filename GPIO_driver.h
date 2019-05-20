@@ -40,8 +40,14 @@ typedef enum {
     GPIO_TOGGLE
 }eGPIO_write_t;
 
+typedef enum {
+    GPIO_INPUT,
+    GPIO_OUTPUT,
+    GPIO_PULL
+}eGPIO_mode_t;
 
-void gpio_init(GPIO_pin_msk_t pin_msk);
+
+void gpio_init(GPIO_pin_msk_t pin_msk, eGPIO_mode_t mode);
 void gpio_write(GPIO_pin_msk_t pin_msk, eGPIO_write_t GPIO_write);
 
 

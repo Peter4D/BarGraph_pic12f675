@@ -1,8 +1,9 @@
-_pic_isr: CODE, 93 0 23
-_tmr0_sw_intHandler: CODE, 165 0 1
-_main: CODE, 59 0 34
-_hw_timer0_get_OF_bit: CODE, 129 0 13
+_pic_isr: CODE, 91 0 31
+_adc_sw_intHandler: CODE, 190 0 1
+_tmr0_sw_intHandler: CODE, 122 0 20
+_main: CODE, 160 0 12
 _gpio_write: CODE, 20 0 39
-_hw_timer0_setup: CODE, 142 0 13
-_gpio_init: CODE, 116 0 13
-Total: 136
+_hw_timer0_setup: CODE, 142 0 18
+_intr_tmr0_en: CODE, 172 0 11
+_gpio_init: CODE, 59 0 32
+Total: 164

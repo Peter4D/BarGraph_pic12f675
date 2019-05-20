@@ -3,11 +3,14 @@
 #include "GPIO_driver.h"
 
 
+void gpio_init(GPIO_pin_msk_t pin_msk, eGPIO_mode_t mode){
+    /* note: input PULL_UP mode not yet implemented */ 
 
-
-void gpio_init(GPIO_pin_msk_t pin_msk){
-
-    TRISIO &= (~pin_msk);
+    if(mode == GPIO_OUTPUT) {
+        TRISIO &= (~pin_msk);
+    } else if (mode == GPIO_INPUT) {
+        TRISIO |= (pin_msk);
+    }
     GPIO &= (~pin_msk);
 }
 
