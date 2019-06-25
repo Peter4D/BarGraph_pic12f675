@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <pic12f675.h>
 
+/* debug */
+#include "GPIO_driver.h"
+
 /* 1010 0000  [GIE|TMR0IE] */
 #define INTCON_TMR0_SETUP_Msk      (0xA0)
 
@@ -28,6 +31,11 @@ void interrupt pic_isr(void)
     if(INTCONbits.TMR0IE && INTCONbits.TMR0IF) {
         //portValue++;
         tmr0_sw_intHandler();
+        //tmr0_uart_intHandler();
+        // #debug
+        gpio_write(GPIO_PIN_2_Msk, GPIO_TOGGLE); 
+
+        TMR0 = 155;
         INTCONbits.TMR0IF = 0;  // clear this interrupt condition
     }
 

@@ -13,6 +13,7 @@
 #include <htc.h>
 
 #include "GPIO_driver.h"
+#include "ADC_driver.h"
 
 #include "hw_timer0.h"
 #include "interrupt.h"
@@ -27,14 +28,20 @@ __CONFIG(FOSC_INTRCIO & WDTE_OFF & PWRTE_OFF & MCLRE_ON & BOREN_ON & CP_OFF & CP
 void delay_blk(uint16_t delay_cnt);
 
 
+void tmr0_uart_intHandler(void) {
+    gpio_write(GPIO_PIN_2_Msk, GPIO_TOGGLE); 
+    //gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE); 
+}
+
 void tmr0_sw_intHandler(void)
 {
     static uint8_t timer0_cnt = 0;
     timer0_cnt--;
     if(timer0_cnt == 0) {
-        //timer0_cnt = TIMER0_1S_CONST;
-        timer0_cnt = TIMER0_0_5S_CONST;
-        gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE); 
+        timer0_cnt = TIMER0_1S_CONST;
+        //timer0_cnt = TIMER0_0_5S_CONST;
+        gpio_write(GPIO_PIN_4_Msk, GPIO_TOGGLE);
+        //gpio_write(GPIO_PIN_2_Msk, GPIO_TOGGLE);  
     }
 }
 
@@ -53,7 +60,11 @@ int main(int argc, char** argv) {
     
     static uint8_t gpio_state = (1<<4);
     
+    ADC_set_AN_intput2digital();
     gpio_init(GPIO_PIN_4_Msk, GPIO_OUTPUT);
+    //gpio_init(GPIO_PIN_5_Msk, GPIO_OUTPUT);
+    gpio_init(GPIO_PIN_2_Msk, GPIO_OUTPUT);
+
     intr_tmr0_en();
     hw_timer0_setup(TIMER0_PRSC_8);
     

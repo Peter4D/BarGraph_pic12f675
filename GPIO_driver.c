@@ -5,13 +5,22 @@
 
 void gpio_init(GPIO_pin_msk_t pin_msk, eGPIO_mode_t mode){
     /* note: input PULL_UP mode not yet implemented */ 
+    static uint8_t TRISIO_state = 0x00;
 
     if(mode == GPIO_OUTPUT) {
-        TRISIO &= (~pin_msk);
+        TRISIO_state &= (~pin_msk);
     } else if (mode == GPIO_INPUT) {
-        TRISIO |= (pin_msk);
+        TRISIO_state |= (pin_msk);
     }
-    GPIO &= (~pin_msk);
+    TRISIO = TRISIO_state;
+
+
+    // if(mode == GPIO_OUTPUT) {
+    //     TRISIO &= (~pin_msk);
+    // } else if (mode == GPIO_INPUT) {
+    //     TRISIO |= (pin_msk);
+    // }
+    //GPIO &= (~pin_msk);
 }
 
 void gpio_write(GPIO_pin_msk_t pin_msk, eGPIO_write_t GPIO_write)

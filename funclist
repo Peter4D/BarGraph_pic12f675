@@ -1,9 +1,10 @@
-_pic_isr: CODE, 91 0 31
-_adc_sw_intHandler: CODE, 190 0 1
-_tmr0_sw_intHandler: CODE, 122 0 20
-_main: CODE, 160 0 12
-_gpio_write: CODE, 20 0 39
-_hw_timer0_setup: CODE, 142 0 18
-_intr_tmr0_en: CODE, 172 0 11
-_gpio_init: CODE, 59 0 32
-Total: 164
+_pic_isr: CODE, 20 0 40
+_adc_sw_intHandler: CODE, 206 0 1
+_tmr0_sw_intHandler: CODE, 127 0 20
+_ADC_set_AN_intput2digital: CODE, 202 0 3
+_main: CODE, 147 0 19
+_gpio_write: CODE, 60 0 39
+_hw_timer0_setup: CODE, 166 0 18
+_intr_tmr0_en: CODE, 184 0 11
+_gpio_init: CODE, 99 0 28
+Total: 179
